@@ -1,0 +1,62 @@
+name: Upload Voter Registration Data to S3
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 17 * * *'  # Runs daily at 12 p.m. EST
+
+permissions:
+  actions: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies from requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Verify Installed Packages
+        run: pip list
+      
+      - name: Run scraper and upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          python scraper.py
+          python upload_to_s3.py
+
+  keepalive:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository with PAT
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+      
+      - name: Set up Git config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Create keepalive commit
+        run: |
+          echo "Keepalive: $(date)" > .keepalive
+          git add .keepalive
+          git commit -m "chore: keepalive commit [skip ci]" || echo "No changes to commit"
+          git push origin main
