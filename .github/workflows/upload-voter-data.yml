@@ -38,7 +38,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           python scraper.py
-          python upload_to_s3.py
+          python helpers/upload_to_s3.py
 
   keepalive:
     runs-on: ubuntu-latest
