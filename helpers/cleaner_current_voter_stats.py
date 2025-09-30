@@ -1,29 +1,21 @@
 import pandas as pd
+import numpy as np
 from pathlib import Path
 import re
 import json
 
 def process_file(file_path, output_dir):
-    df = pd.read_excel(file_path, header=None)
-    
-    date_str = str(df.iloc[0, 0]) if not df.empty else ""
+    df0 = pd.read_excel(file_path, header=None)
+    date_str = str(df0.iloc[0, 0]) if not df0.empty else ""
     date_match = re.search(r'(\d{2})/(\d{2})/(\d{4})', date_str)
-    
-    if date_match:
-        month, day, year = date_match.groups()
-        date_formatted = f"{month}/{day}/{year}"
-    else:
-        date_formatted = "Unknown"
-    
+    date_formatted = f"{date_match.group(1)}/{date_match.group(2)}/{date_match.group(3)}" if date_match else "Unknown"
+
     df = pd.read_excel(file_path, header=1)
-    
     df = df.loc[:, ~df.columns.isna()]
     df = df.loc[:, ~df.columns.astype(str).str.contains('^Unnamed')]
-    
     df = df[~df['CountyName'].astype(str).str.contains('Total', case=False, na=False)]
-    
     df['CountyName'] = df['CountyName'].astype(str).str.title()
-    
+
     column_mapping = {
         'Dem': 'Democrat',
         'Rep': 'Republican',
@@ -31,7 +23,7 @@ def process_file(file_path, output_dir):
         'Total Count of All Voters': 'Total'
     }
     df = df.rename(columns=column_mapping)
-    
+
     numeric_columns = ['Democrat', 'Republican', 'No Affiliation', 'Other', 'Total']
     for col in numeric_columns:
         if col in df.columns:
@@ -40,29 +32,49 @@ def process_file(file_path, output_dir):
 
     if 'CountyID' in df.columns:
         df['CountyID'] = pd.to_numeric(df['CountyID'], errors='coerce').fillna(0).astype(int)
-    
+
+    if 'Total' not in df.columns:
+        parts = [c for c in ['Democrat', 'Republican', 'No Affiliation', 'Other'] if c in df.columns]
+        if parts:
+            df['Total'] = df[parts].sum(axis=1)
+        else:
+            df['Total'] = 0
+
+    share_cols = {}
+    for party in ['Democrat', 'Republican', 'No Affiliation', 'Other']:
+        if party in df.columns:
+            share_col = f'{party} Share'
+            share_vals = np.where(df['Total'] > 0, (df[party] / df['Total']) * 100, 0.0)
+            share_cols[share_col] = np.round(share_vals, 2)
+
+    for party in ['Democrat', 'Republican', 'No Affiliation', 'Other']:
+        if party in df.columns and f'{party} Share' in share_cols:
+            insert_loc = df.columns.get_loc(party) + 1
+            df.insert(insert_loc, f'{party} Share', share_cols[f'{party} Share'])
+
     df = df.reset_index(drop=True)
 
-    original_name = file_path.stem
-    extension = file_path.suffix
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    original_name = Path(file_path).stem
+    extension = Path(file_path).suffix
     output_path = output_dir / f"{original_name}{extension}"
-    
     df.to_excel(output_path, index=False)
-    
+
     metadata = {
         "last_updated": date_formatted,
-        "total_counties": len(df),
+        "total_counties": int(len(df)),
         "file_name": f"{original_name}{extension}"
     }
-    
     metadata_path = output_dir / "metadata.json"
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
-    
+
     print(f"Processed {file_path} -> {output_path}")
     print(f"Date extracted: {date_formatted}")
     print(f"Headers: {list(df.columns)}")
     print(f"Rows processed: {len(df)}")
     print(f"Metadata saved: {metadata_path}")
-    
+
     return output_path
