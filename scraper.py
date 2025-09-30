@@ -1,13 +1,13 @@
 import requests
 from pathlib import Path
-from helpers import proper_case
+from helpers import cleaner_current_voter_stats
 
 FILES_TO_DOWNLOAD = {
     "current_voter_stats.xls": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/currentvotestats.xls",
 }
 
 FILE_HELPERS = {
-    "current_voter_stats.xls": proper_case.process_file,
+    "current_voter_stats.xls": cleaner_current_voter_stats.process_file,
 }
 
 def download_files():
