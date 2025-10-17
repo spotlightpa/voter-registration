@@ -35,10 +35,7 @@ def process_file(file_path, output_dir):
 
     if 'Total' not in df.columns:
         parts = [c for c in ['Democrat', 'Republican', 'No Affiliation', 'Other'] if c in df.columns]
-        if parts:
-            df['Total'] = df[parts].sum(axis=1)
-        else:
-            df['Total'] = 0
+        df['Total'] = df[parts].sum(axis=1) if parts else 0
 
     share_cols = {}
     for party in ['Democrat', 'Republican', 'No Affiliation', 'Other']:
@@ -57,15 +54,13 @@ def process_file(file_path, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    original_name = Path(file_path).stem
-    extension = Path(file_path).suffix
-    output_path = output_dir / f"{original_name}{extension}"
+    output_path = output_dir / "county.xlsx"
     df.to_excel(output_path, index=False)
 
     metadata = {
         "last_updated": date_formatted,
         "total_counties": int(len(df)),
-        "file_name": f"{original_name}{extension}"
+        "file_name": "county.xlsx"
     }
     metadata_path = output_dir / "metadata.json"
     with open(metadata_path, 'w') as f:
