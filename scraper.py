@@ -2,11 +2,14 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 import requests
 from pathlib import Path
-from helpers import county, total
+from helpers import county, total, congress
 from helpers.upload_to_s3 import upload_to_s3
 
 FILES_TO_DOWNLOAD = {
     "current_voter_stats.xls": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/currentvotestats.xls",
+    "congress.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbycongressionaldistricts.xlsx",
+    "senate.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbysenatorialdistricts.xlsx",
+    "house.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbylegislativedistricts.xlsx",
 }
 
 def download_files():
@@ -24,8 +27,15 @@ def download_files():
         raw_path.write_bytes(resp.content)
         print(f"Downloaded: {raw_path}")
 
-        processed_path = county.process_file(raw_path, processed_dir)
-        total.process_file(processed_path, processed_dir)
+        if filename == "current_voter_stats.xls":
+            processed_path = county.process_file(raw_path, processed_dir)
+            total.process_file(processed_path, processed_dir)
+        elif filename == "congress.xlsx":
+            congress.process_file(raw_path, processed_dir)
+        else:
+            processed_path = processed_dir / filename
+            processed_path.write_bytes(resp.content)
+            print(f"Saved to processed: {processed_path}")
 
     return list(data_dir.rglob("*"))
 
