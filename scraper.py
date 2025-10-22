@@ -2,7 +2,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 import requests
 from pathlib import Path
-from helpers import county, total, congress
+from helpers import county, total, congress, house, senate
 from helpers.upload_to_s3 import upload_to_s3
 
 FILES_TO_DOWNLOAD = {
@@ -32,10 +32,10 @@ def download_files():
             total.process_file(processed_path, processed_dir)
         elif filename == "congress.xlsx":
             congress.process_file(raw_path, processed_dir)
-        else:
-            processed_path = processed_dir / filename
-            processed_path.write_bytes(resp.content)
-            print(f"Saved to processed: {processed_path}")
+        elif filename == "house.xlsx":
+            house.process_file(raw_path, processed_dir)
+        elif filename == "senate.xlsx":
+            senate.process_file(raw_path, processed_dir)
 
     return list(data_dir.rglob("*"))
 
