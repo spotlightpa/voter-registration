@@ -9,7 +9,7 @@ def process_file(file_path, output_dir):
     
     df = df.loc[:, ~df.columns.astype(str).str.contains('^Unnamed')]
     
-    df['DistrictCode'] = df['DistrictCode'].fillna(method='ffill')
+    df['DistrictCode'] = df['DistrictCode'].ffill()
     
     df = df[df['CountyName'].astype(str).str.contains('Sub Total', case=False, na=False)]
     

@@ -7,7 +7,7 @@ import json
 def process_file(file_path, output_dir):
     df = pd.read_excel(file_path, header=0)
     
-    df['DistrictCode'] = df['DistrictCode'].fillna(method='ffill')
+    df['DistrictCode'] = df['DistrictCode'].ffill()
     
     df = df[df['CountyName'].astype(str).str.contains('Sub Total', case=False, na=False)]
     
