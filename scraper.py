@@ -6,10 +6,10 @@ from helpers import county, total, congress, house, senate
 from helpers.upload_to_s3 import upload_to_s3
 
 FILES_TO_DOWNLOAD = {
-    "current_voter_stats.xls": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/currentvotestats.xls",
-    "congress.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbycongressionaldistricts.xls",
-    "senate.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbysenatorialdistricts.xls",
-    "house.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbylegislativedistricts.xls",
+    "current_voter_stats.xls": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/currentvotestats.xlsx",
+    "congress.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbycongressionaldistricts.xlsx",
+    "senate.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbysenatorialdistricts.xlsx",
+    "house.xlsx": "https://www.pa.gov/content/dam/copapwp-pagov/en/dos/resources/voting-and-elections/voting-and-election-statistics/current%20voterregstatsbylegislativedistricts.xlsx",
 }
 
 def download_files():
