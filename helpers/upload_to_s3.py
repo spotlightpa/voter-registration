@@ -4,6 +4,8 @@ from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
+from datetime import date
+
 def upload_to_s3():
     bucket_name = os.environ.get('S3_BUCKET_NAME')
     aws_region = os.environ.get('AWS_REGION')
@@ -47,6 +49,22 @@ def upload_to_s3():
                 print(f"✓ Uploaded: {file_path.name}")
                 print(f"  URL: {public_url}")
                 uploaded_files.append(public_url)
+
+                # Archive copy with date prefix
+                today = date.today().strftime("%Y-%m-%d")
+                archive_key = f"{s3_base_path}archive/{today}/{file_path.name}"
+                s3_client.upload_file(
+                    str(file_path),
+                    bucket_name,
+                    archive_key,
+                    ExtraArgs={
+                        'ACL': 'public-read',
+                        'ContentType': content_type
+                    }
+                )
+                archive_url = f"https://{bucket_name}.s3.{aws_region}.amazonaws.com/{archive_key}"
+                print(f"  Archived: {archive_url}")
+                uploaded_files.append(archive_url)
             except Exception as e:
                 print(f"Failed to upload {file_path.name}: {str(e)}")
 
